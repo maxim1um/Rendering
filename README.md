@@ -1,5 +1,5 @@
 # Rendering
-A tutorial for real-time rendering
+A tutorial for real-time rendering. It uses MIT license.
 
 This tutorial is based the tutorial of LearnOpenGL and the course of Real-time Rendering in Trinity College Dulin.
 

@@ -1,25 +1,39 @@
 #version 440
 
+struct Material
+{
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+};
+
+struct Light
+{
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+    vec3 position;
+};
+
 out vec4 FragColor;
 
 in vec3 FragPos;
 in vec3 Normal;
 
-uniform vec3 lightColor;
-uniform vec3 objectColor;
+uniform Light light;
+uniform Material material;
 
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 
 uniform int controlBit;
 
+const vec3 objectColor = vec3(1.0f, 0.5f, 0.31f);
 const vec3 coolColor = vec3(159.0f / 255, 148.0f / 255, 255.0f / 255);
 const vec3 warmColor = vec3(255.0f / 255, 75.0f / 255, 75.0f / 255);
 const float alpa = 0.25;
 const float beta = 0.5;
-const float ambientStrength = 0.1;
-const float specularStrength = 0.5;
-const float shininess = 32.0;
 
 void main()
 {
@@ -57,32 +71,38 @@ void main()
     if (controlBit == 3)
     {
         // This is phong shading
-        ambient = lightColor * ambientStrength;
+        // Ambient color
+        ambient = material.ambient * light.ambient;
 
+        // Diffuse color
         diff = max(dot(norm, lightDir), 0);
-        diffuse = diff * lightColor;
+        diffuse = material.diffuse * diff * light.diffuse;
 
+        // Specular color
         vec3 reflectDir = reflect(-lightDir, norm);
 
-        spec = pow(max(dot(viewDir, reflectDir), 0), shininess);
-        specular = specularStrength * spec * lightColor;
+        spec = pow(max(dot(viewDir, reflectDir), 0), material.shininess);
+        specular = material.specular * spec * light.specular;
 
-        result = (ambient + diffuse + specular) * objectColor;
+        result = ambient + diffuse + specular;
     }
     if (controlBit == 4)
     {
         // This is blinn-phong shading
-        ambient = lightColor * ambientStrength;
+        // Ambient Color
+        ambient = material.ambient * light.ambient;
 
+        // Diffuse Color
         diff = max(dot(norm, lightDir), 0);
-        diffuse = diff * lightColor;
+        diffuse = material.diffuse * diff * light.diffuse;;
 
+        // Specular Color
         vec3 halfDir = normalize(lightDir + viewDir);
 
-        spec = pow(max(dot(halfDir, norm), 0), shininess);
-        specular = specularStrength * spec * lightColor;
+        spec = pow(max(dot(halfDir, norm), 0), material.shininess);
+        specular = material.specular * spec * light.specular;
 
-        result = (ambient + diffuse + specular) * objectColor;
+        result = ambient + diffuse + specular;
     }
 
     FragColor = vec4(result, 1.0);

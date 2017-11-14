@@ -10,10 +10,10 @@ struct Material
 
 struct Light
 {
+    vec4 lightVector;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-    vec3 position;
 };
 
 out vec4 FragColor;
@@ -37,7 +37,14 @@ const float beta = 0.5;
 
 void main()
 {
-    vec3 lightDir = normalize(lightPos - FragPos);
+    vec3 lightDir;
+    
+    // Check the w conponent to define a directionial light or point light
+    if (light.lightVector.w == 0.0) // Directional light
+        lightDir = normalize(-vec3(light.lightVector));
+    else if (light.lightVector.w == 1.0) // Point light
+        lightDir = normalize(vec3(light.lightVector) - FragPos);
+
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 norm = normalize(Normal);
 

@@ -5,4 +5,4 @@ This tutorial is based the tutorial of LearnOpenGL and CS7055 Real-time Renderin
 
 The Exercises folder is a series of exercises for training.
 
-The CS7055 folder is a bunch of course work of the course.
+The CS7055 folder is a bunch of coursework of the course.

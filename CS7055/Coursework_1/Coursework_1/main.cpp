@@ -26,7 +26,7 @@ GLuint SCREEN_WIDTH = 800;
 GLuint SCREEN_HEIGHT = 600;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 1.0f, 4.0f));
 GLfloat lastX = SCREEN_WIDTH / 2.0f;
 GLfloat lastY = SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -37,6 +37,21 @@ GLfloat lastFrame = 0.0f;
 
 // Lighting position
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+// Model position
+
+std::vector<glm::vec3> modelPos = {
+	glm::vec3(0.0f,  0.0f,  0.0f),
+	glm::vec3(2.0f,  5.0f, -15.0f),
+	glm::vec3(-1.5f, -2.2f, -2.5f),
+	glm::vec3(-3.8f, -2.0f, -12.3f),
+	glm::vec3(2.4f, -0.4f, -3.5f),
+	glm::vec3(-1.7f,  3.0f, -7.5f),
+	glm::vec3(1.3f, -2.0f, -2.5f),
+	glm::vec3(1.5f,  2.0f, -2.5f),
+	glm::vec3(1.5f,  0.2f, -1.5f),
+	glm::vec3(-1.3f,  1.0f, -1.5f)
+};
 
 // Shader Control Bit
 GLuint controlBit = 1;
@@ -107,31 +122,38 @@ int main(int argc, char* argv[])
 		// Model/view/projection transformations
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 model;
-		model = glm::translate(model, glm::vec3(0.0f, -1.0f, -1.0f));
-		model = glm::rotate(model, (GLfloat)(0.4 * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+		for (std::vector<glm::vec3>::iterator it = modelPos.begin(); it != modelPos.end(); ++it)
+		{
+			glm::mat4 model;
+			model = glm::translate(model, *it);
+			model = glm::scale(model, glm::vec3(0.6f, 1.4f, 1.0f));
+			model = glm::rotate(model, (GLfloat)(0.4 * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+			glm::mat3 NormalMatrix = glm::transpose(glm::inverse(model));
 
-		// Enable shader before setting uniforms
-		teapotShader.use();
-		teapotShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
-		teapotShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
-		teapotShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-		teapotShader.setFloat("material.shininess", 32.0);
-		teapotShader.setVec4("light.lightVector", glm::vec4(lightPos, 1.0f)); // Determine the property of light - directional or point(omni)
-		teapotShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-		teapotShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-		teapotShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-		//teapotShader.setVec3("lightPos", lightPos);
-		teapotShader.setVec3("viewPos", camera.Position);
-		teapotShader.setInt("controlBit", controlBit);
+			// Enable shader before setting uniforms
+			teapotShader.use();
+			teapotShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+			teapotShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+			teapotShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+			teapotShader.setFloat("material.shininess", 32.0);
+			teapotShader.setVec4("light.lightVector", glm::vec4(lightPos, 1.0f)); // Determine the property of light - directional or point(omni)
+			teapotShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+			teapotShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+			teapotShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+			//teapotShader.setVec3("lightPos", lightPos);
+			teapotShader.setVec3("viewPos", camera.Position);
+			teapotShader.setInt("controlBit", controlBit);
 
-		// Pass projection, view and model matrix to phong shader
-		teapotShader.setMat4("projection", projection);
-		teapotShader.setMat4("view", view);
-		teapotShader.setMat4("model", model);
+			// Pass projection, view and model matrix to phong shader
+			teapotShader.setMat4("projection", projection);
+			teapotShader.setMat4("view", view);
+			teapotShader.setMat4("model", model);
+			teapotShader.setMat3("NormalMatrix", NormalMatrix);
 
-		// Render the loaded model
-		teapot.Draw(teapotShader);
+			// Render the loaded model
+			teapot.Draw(teapotShader);
+		}
+		
 		
 		//toonShader.use();
 		//toonShader.setVec3("lightPos", lightPos);

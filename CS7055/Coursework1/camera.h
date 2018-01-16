@@ -29,6 +29,8 @@ GLfloat SPEED = 2.5f;
 GLfloat SENSITIVITY = 0.1f;
 GLfloat ZOOM = 45.0f;
 
+glm::quat QuaternionMultiply(glm::quat quat1, glm::quat quat2);
+
 class Camera
 {
 public:
@@ -41,6 +43,8 @@ public:
 	// euler Angles
 	GLfloat Yaw;
 	GLfloat Pitch;
+	// quaternion
+	glm::quat Quaternion;
 	// camera options
 	GLfloat MovementSpeed;
 	GLfloat MouseSensitivity;
@@ -53,6 +57,9 @@ public:
 		WorldUp = up;
 		Yaw = yaw;
 		Pitch = pitch;
+		Quaternion = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
+		glm::quat temp = glm::quat(glm::vec3(glm::radians(Pitch), glm::radians(Yaw), glm::radians(0.0f)));
+		glm::quat rotation = QuaternionMultiply(Quaternion, temp);
 		updateCameraVectors();
 	}
 
@@ -63,6 +70,7 @@ public:
 		WorldUp = glm::vec3(upX, upY, upZ);
 		Yaw = yaw;
 		Pitch = pitch;
+		Quaternion = glm::quat(glm::vec3(glm::radians(Pitch), glm::radians(Yaw), glm::radians(0.0f)));
 		updateCameraVectors();
 	}
 
@@ -102,6 +110,9 @@ public:
 		
 		Yaw += xoffset;
 		Pitch += yoffset;
+
+		glm::quat ratation = glm::quat(glm::vec3(glm::radians(yoffset), glm::radians(xoffset), 0.0f));
+
 
 		// Make sure that when pitch is out of bounds, screen doesn't get flipped
 		if (constrainPitch)
@@ -152,5 +163,38 @@ private:
 		Up = glm::normalize(glm::cross(Right, Front));
 	}
 };
+
+glm::quat QuaternionMultiply(glm::quat quat1, glm::quat quat2)
+{
+	glm::quat result;
+	glm::vec3 vector1;
+	glm::vec3 vector2;
+	glm::vec3 crossProduct;
+	float angle;
+
+	vector1.x = quat1.x;
+	vector1.y = quat1.y;
+	vector1.z = quat1.z;
+	vector2.x = quat2.x;
+	vector2.y = quat2.y;
+	vector2.z = quat2.z;
+
+	angle = (quat1.w * quat2.w) - glm::dot(vector1, vector2);
+	crossProduct = glm::cross(vector1, vector2);
+
+	vector1.x = vector1.x * quat2.w;
+	vector1.y = vector1.y * quat2.w;
+	vector1.z = vector1.z * quat2.w;
+	vector2.x = vector2.x * quat1.w;
+	vector2.y = vector2.y * quat1.w;
+	vector2.z = vector2.z * quat1.w;
+
+	result.x = vector1.x + vector2.x + crossProduct.x;
+	result.y = vector1.y + vector2.y + crossProduct.y;
+	result.z = vector1.z + vector2.z + crossProduct.z;
+	result.w = angle;
+
+	return result;
+}
 
 #endif

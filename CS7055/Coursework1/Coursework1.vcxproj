@@ -117,15 +117,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="glad.c" />
+    <ClCompile Include="..\Deps\cpp\glad.c" />
+    <ClCompile Include="..\Deps\cpp\rotation.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camera.h" />
-    <ClInclude Include="mesh.h" />
-    <ClInclude Include="model.h" />
-    <ClInclude Include="shader.h" />
-    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="..\Deps\include\camera.h" />
+    <ClInclude Include="..\Deps\include\mesh.h" />
+    <ClInclude Include="..\Deps\include\model.h" />
+    <ClInclude Include="..\Deps\include\shader.h" />
+    <ClInclude Include="..\Deps\include\stb_image.h" />
+    <ClInclude Include="rotation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

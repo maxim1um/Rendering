@@ -15,6 +15,8 @@
 #include "shader.h"
 #include "camera.h"
 #include "model.h"
+#include "math.h"
+#include "rotation.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -23,12 +25,12 @@ void processInput(GLFWwindow* window);
 
 // Setting
 GLuint SCREEN_WIDTH = 800;
-GLuint SCREEN_HEIGHT = 600;
+GLuint SCREEN_HEIGTH = 600;
 
 // Camera
 Camera camera(glm::vec3(0.0f, 1.0f, 4.0f));
 GLfloat lastX = SCREEN_WIDTH / 2.0f;
-GLfloat lastY = SCREEN_HEIGHT / 2.0f;
+GLfloat lastY = SCREEN_HEIGTH / 2.0f;
 bool firstMouse = true;
 
 // Timing
@@ -39,22 +41,30 @@ GLfloat lastFrame = 0.0f;
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 // Model position
+//std::vector<glm::vec3> modelPos = {
+//	glm::vec3(0.0f,  0.0f,  0.0f),
+//	glm::vec3(2.0f,  5.0f, -15.0f),
+//	glm::vec3(-1.5f, -2.2f, -2.5f),
+//	glm::vec3(-3.8f, -2.0f, -12.3f),
+//	glm::vec3(2.4f, -0.4f, -3.5f),
+//	glm::vec3(-1.7f,  3.0f, -7.5f),
+//	glm::vec3(1.3f, -2.0f, -2.5f),
+//	glm::vec3(1.5f,  2.0f, -2.5f),
+//	glm::vec3(1.5f,  0.2f, -1.5f),
+//	glm::vec3(-1.3f,  1.0f, -1.5f)
+//};
 
 std::vector<glm::vec3> modelPos = {
 	glm::vec3(0.0f,  0.0f,  0.0f),
-	glm::vec3(2.0f,  5.0f, -15.0f),
-	glm::vec3(-1.5f, -2.2f, -2.5f),
-	glm::vec3(-3.8f, -2.0f, -12.3f),
-	glm::vec3(2.4f, -0.4f, -3.5f),
-	glm::vec3(-1.7f,  3.0f, -7.5f),
-	glm::vec3(1.3f, -2.0f, -2.5f),
-	glm::vec3(1.5f,  2.0f, -2.5f),
-	glm::vec3(1.5f,  0.2f, -1.5f),
-	glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
 // Shader Control Bit
-GLuint controlBit = 1;
+GLuint controlBit = 4;
+
+// Model rotation angle bu using quaternion
+glm::vec3 lastAngle;
+glm::vec3 currentAngle;
+glm::quat quatRotation;
 
 int main(int argc, char* argv[])
 {
@@ -65,7 +75,7 @@ int main(int argc, char* argv[])
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// GLFW window creation
-	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Texture", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGTH, "Texture", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -94,10 +104,10 @@ int main(int argc, char* argv[])
 	//Shader gouraudShader("resources/shaders/gouraud.vert", "resources/shaders/gouraud.frag");
 	//Shader goochShader("resources/shaders/gooch.vert", "resources/shaders/gooch.frag");
 	//Shader blinnphongShader("resources/shaders/blinnphong.vert", "resources/shaders/blinnphong.frag");
-	Shader teapotShader("resources/shaders/teapot.vert", "resources/shaders/teapot.frag");
+	Shader teapotShader("../deps/shaders/teapot.vert", "../deps/shaders/teapot.frag");
 
 	// Load models
-	Model teapot("resources/models/teapot.obj");
+	Model teapot("../deps/models/teapot.obj");
 
 	// Render loop
 	while (!glfwWindowShouldClose(window))
@@ -119,15 +129,23 @@ int main(int argc, char* argv[])
 		//lightPos.y = glm::sin(glfwGetTime() / 2.0f) * 1.0f;
 		//lightPos.z = -1.0f + glm::sin(glfwGetTime());
 
+
 		// Model/view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGTH, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
 		for (std::vector<glm::vec3>::iterator it = modelPos.begin(); it != modelPos.end(); ++it)
 		{
 			glm::mat4 model;
 			model = glm::translate(model, *it);
-			model = glm::scale(model, glm::vec3(0.6f, 1.4f, 1.0f));
-			model = glm::rotate(model, (GLfloat)(0.4 * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+			//model = glm::scale(model, glm::vec3(0.6f, 1.4f, 1.0f));
+			//model = glm::rotate(model, (GLfloat)(0.4 * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+			// Rotate the model by using quaternion to build rotation matrix
+			glm::vec3 deltaAngle = currentAngle - lastAngle;
+			quatRotation = RotationQuaternion(quatRotation, glm::quat(deltaAngle));
+			lastAngle = currentAngle;
+			glm::mat4 rotationMatrix = glm::mat4(QuaternionToMatrix(quatRotation));
+			model = rotationMatrix;
+
 			glm::mat3 NormalMatrix = glm::transpose(glm::inverse(model));
 
 			// Enable shader before setting uniforms
@@ -278,5 +296,29 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
 	{
 		controlBit = 4;
+	}
+	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+	{
+		currentAngle += glm::vec3(0.0f, -0.01f, 0.0f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
+	{
+		currentAngle += glm::vec3(0.0f, 0.01f, 0.0f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
+	{
+		currentAngle += glm::vec3(0.0f, 0.0f, 0.01f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+	{
+		currentAngle += glm::vec3(0.0f, 0.0f, -0.01f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
+	{
+		currentAngle += glm::vec3(0.01f, 0.0f, 0.0f);
+	}
+	if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+	{
+		currentAngle += glm::vec3(-0.01f, 0.0f, 0.0f);
 	}
 }

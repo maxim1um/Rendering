@@ -15,8 +15,7 @@
 #include "shader.h"
 #include "camera.h"
 #include "model.h"
-#include "math.h"
-#include "rotation.h"
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -139,11 +138,12 @@ int main(int argc, char* argv[])
 			model = glm::translate(model, *it);
 			//model = glm::scale(model, glm::vec3(0.6f, 1.4f, 1.0f));
 			//model = glm::rotate(model, (GLfloat)(0.4 * glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+
 			// Rotate the model by using quaternion to build rotation matrix
 			glm::vec3 deltaAngle = currentAngle - lastAngle;
-			quatRotation = RotationQuaternion(quatRotation, glm::quat(deltaAngle));
+			quatRotation = glm::cross(quatRotation, glm::quat(deltaAngle));
 			lastAngle = currentAngle;
-			glm::mat4 rotationMatrix = glm::mat4(QuaternionToMatrix(quatRotation));
+			glm::mat4 rotationMatrix = glm::mat4_cast(quatRotation);
 			model = rotationMatrix;
 
 			glm::mat3 NormalMatrix = glm::transpose(glm::inverse(model));
@@ -299,26 +299,26 @@ void processInput(GLFWwindow* window)
 	}
 	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
 	{
-		currentAngle += glm::vec3(0.0f, -0.01f, 0.0f);
+		currentAngle += glm::vec3(0.0f, -0.001f, 0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
 	{
-		currentAngle += glm::vec3(0.0f, 0.01f, 0.0f);
+		currentAngle += glm::vec3(0.0f, 0.001f, 0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS)
 	{
-		currentAngle += glm::vec3(0.0f, 0.0f, 0.01f);
+		currentAngle += glm::vec3(0.0f, 0.0f, 0.001f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
 	{
-		currentAngle += glm::vec3(0.0f, 0.0f, -0.01f);
+		currentAngle += glm::vec3(0.0f, 0.0f, -0.001f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_U) == GLFW_PRESS)
 	{
-		currentAngle += glm::vec3(0.01f, 0.0f, 0.0f);
+		currentAngle += glm::vec3(0.001f, 0.0f, 0.0f);
 	}
 	if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
 	{
-		currentAngle += glm::vec3(-0.01f, 0.0f, 0.0f);
+		currentAngle += glm::vec3(-0.001f, 0.0f, 0.0f);
 	}
 }

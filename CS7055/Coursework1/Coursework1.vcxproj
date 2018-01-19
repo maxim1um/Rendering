@@ -118,7 +118,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Deps\cpp\glad.c" />
-    <ClCompile Include="..\Deps\cpp\rotation.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -127,7 +126,6 @@
     <ClInclude Include="..\Deps\include\model.h" />
     <ClInclude Include="..\Deps\include\shader.h" />
     <ClInclude Include="..\Deps\include\stb_image.h" />
-    <ClInclude Include="rotation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
